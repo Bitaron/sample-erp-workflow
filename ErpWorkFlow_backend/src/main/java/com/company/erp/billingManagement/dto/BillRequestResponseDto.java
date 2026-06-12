@@ -8,7 +8,9 @@ public class BillRequestResponseDto {
     private LocalDateTime createdTime;
     private String status;
     private String invoiceNumber;
+    private Long invoiceId;
     private Boolean canApprove;
+    private Long workflowInstanceId;
     public BillRequestResponseDto() {}
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -26,4 +28,20 @@ public class BillRequestResponseDto {
     public void setInvoiceNumber(String invoiceNumber) { this.invoiceNumber = invoiceNumber; }
     public Boolean getCanApprove() { return canApprove; }
     public void setCanApprove(Boolean canApprove) { this.canApprove = canApprove; }
+
+    public Long getWorkflowInstanceId() {
+        return workflowInstanceId;
+    }
+
+    public void setWorkflowInstanceId(Long workflowInstanceId) {
+        this.workflowInstanceId = workflowInstanceId;
+    }
+
+    public Long getInvoiceId() {
+        return invoiceId;
+    }
+
+    public void setInvoiceId(Long invoiceId) {
+        this.invoiceId = invoiceId;
+    }
 }

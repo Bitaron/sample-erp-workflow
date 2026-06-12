@@ -1,17 +1,41 @@
 package com.company.erp.billingManagement.service.impl;
-import com.company.erp.billingManagement.dto.*;
+
+import com.company.erp.billingManagement.dto.BillRequestRequestDto;
+import com.company.erp.billingManagement.dto.BillRequestResponseDto;
 import com.company.erp.billingManagement.entity.BillRequest;
 import com.company.erp.billingManagement.repository.BillRequestRepository;
 import com.company.erp.billingManagement.service.BillRequestService;
-import org.springframework.data.domain.Page;
+import com.company.erp.invoiceManagement.entity.Invoice;
+import com.company.erp.invoiceManagement.repository.InvoiceRepository;
+import com.company.erp.userManagement.entity.User;
+import com.company.erp.userManagement.repository.UserRepository;
+import com.company.erp.workflowManagement.dto.StartWorkflowRequestDto;
+import com.company.erp.workflowManagement.entity.DocumentWorkflowInstance;
+import com.company.erp.workflowManagement.repository.DocumentWorkflowInstanceRepository;
+import com.company.erp.workflowManagement.service.WorkflowInstanceService;
+import com.company.erp.workflowManagement.service.WorkflowService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 @Service
 public class BillRequestServiceImpl implements BillRequestService {
-    private final BillRequestRepository repository;
-    public BillRequestServiceImpl(BillRequestRepository repository) { this.repository = repository; }
+    @Autowired
+    private BillRequestRepository repository;
+    @Autowired
+    private DocumentWorkflowInstanceRepository workflowInstanceRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private WorkflowInstanceService workflowInstanceService;
+    @Autowired
+    private InvoiceRepository invoiceRepository;
+
     @Override
     public BillRequestResponseDto createBillRequest(BillRequestRequestDto request) {
         BillRequest br = new BillRequest();
@@ -21,16 +45,22 @@ public class BillRequestServiceImpl implements BillRequestService {
         br.setCreatedTime(LocalDateTime.now());
         br.setStatus("IN_PROGRESS");
         br = repository.save(br);
+        StartWorkflowRequestDto req = new StartWorkflowRequestDto();
+        req.setDocumentId(br.getId());
+        workflowInstanceService.startWorkflow(req);
         return mapToDto(br);
     }
+
     @Override
-    public Page<BillRequestResponseDto> getBillRequests(Pageable pageable) {
-        return repository.findAll(pageable).map(this::mapToDto);
+    public List<BillRequestResponseDto> getBillRequests(Pageable pageable) {
+        return repository.findAll().stream().map(this::mapToDto).toList();
     }
+
     @Override
     public BillRequestResponseDto getBillRequestById(Long id) {
         return repository.findById(id).map(this::mapToDto).orElseThrow(() -> new RuntimeException("Not found"));
     }
+
     private BillRequestResponseDto mapToDto(BillRequest br) {
         BillRequestResponseDto dto = new BillRequestResponseDto();
         dto.setId(br.getId());
@@ -39,8 +69,24 @@ public class BillRequestServiceImpl implements BillRequestService {
         dto.setCreatedBy(br.getCreatedBy());
         dto.setCreatedTime(br.getCreatedTime());
         dto.setStatus(br.getStatus());
-        dto.setInvoiceNumber(br.getInvoiceNumber());
-        dto.setCanApprove(false); // To be implemented in Phase 4
+        Optional<Invoice> optionalInvoice = invoiceRepository.findByBillingRequestId(br.getId());
+        if (optionalInvoice.isPresent()) {
+            dto.setInvoiceNumber(optionalInvoice.get().getInvoiceNo());
+            dto.setInvoiceId(optionalInvoice.get().getId());
+        }
+        Optional<DocumentWorkflowInstance> workflowInstance =
+                workflowInstanceRepository.findByDocumentId(br.getId());
+        Optional<User> user = userRepository.findByUserName(SecurityContextHolder.getContext().getAuthentication().getName());
+        if (workflowInstance.isPresent() && user.isPresent()
+                && user.get().getDepartment() != null) {
+            if (!"COMPLETED".equals(workflowInstance.get().getStatus())) {
+                dto.setCanApprove(workflowInstance.get().getCurrentWorkflowStep().getDepartment().getId()
+                        .equals(user.get().getDepartment().getId()));
+            }
+            dto.setWorkflowInstanceId(workflowInstance.get().getId());
+        } else {
+            dto.setCanApprove(false);
+        }
         return dto;
     }
 }

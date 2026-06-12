@@ -41,7 +41,7 @@ export function LoginPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.currentUser });
-      window.location.href = '/dashboard';
+      navigate('/dashboard');
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, 'Invalid username or password'));

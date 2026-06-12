@@ -5,18 +5,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/bill-requests")
 public class BillRequestController {
     private final BillRequestService billRequestService;
     public BillRequestController(BillRequestService billRequestService) { this.billRequestService = billRequestService; }
     @PostMapping
-    @PreAuthorize("hasRole('SALES_EXECUTIVE')")
     public BillRequestResponseDto createBillRequest(@RequestBody BillRequestRequestDto request) {
         return billRequestService.createBillRequest(request);
     }
     @GetMapping
-    public Page<BillRequestResponseDto> getBillRequests(Pageable pageable) {
+    public List<BillRequestResponseDto> getBillRequests(Pageable pageable) {
         return billRequestService.getBillRequests(pageable);
     }
     @GetMapping("/{id}")
