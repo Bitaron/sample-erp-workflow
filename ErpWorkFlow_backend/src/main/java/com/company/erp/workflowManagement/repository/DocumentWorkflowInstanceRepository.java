@@ -4,4 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 public interface DocumentWorkflowInstanceRepository extends JpaRepository<DocumentWorkflowInstance, Long> {
     Optional<DocumentWorkflowInstance> findByDocumentId(Long documentId);
+    long countByStatus(String status);
+    long countByStatusAndCurrentWorkflowStepDepartmentId(String status, Long departmentId);
 }
