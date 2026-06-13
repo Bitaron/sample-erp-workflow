@@ -103,9 +103,10 @@ Capabilities:
 ```
     Sales -> Accounts
 
-3.  Login as sales user.
-4.  Create billing request.
-5.  Login as accounts user.
+3.  Create billing request.
+4.  Login as sales user.
+5.  Approve request.
+6.  Login as accounts user.
 6.  Approve request.
 7.  System generates invoice and audit history.
 
