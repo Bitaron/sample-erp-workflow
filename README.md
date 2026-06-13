@@ -215,11 +215,13 @@ with migration tooling.
 
 # Known Issues
 
+-   No support to select different workflow.
 -   No workflow versioning.
 -   No file attachment support.
 -   No email or push notifications.
 -   Limited reporting.
 -   Sequential workflow only.
+-   Multiple workflow for same document type not supported. 
 
 # Future Improvements
 
